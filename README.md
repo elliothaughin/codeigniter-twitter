@@ -26,7 +26,9 @@ Look through the [Twitter API Documentation](http://dev.twitter.com/doc/) to fin
 The documentation will tell you if the request is a 'get' or 'post' request.
 Then, simply use:
 
-	$this->tweet->call($http_method, $request_uri, $params);
+	// Example call structure:
+	// 
+	// $this->tweet->call($http_method, $request_uri, $params);
 
 	$user = $this->tweet->call('get', 'users/show', array('screen_name' => 'elliothaughin'));
 
