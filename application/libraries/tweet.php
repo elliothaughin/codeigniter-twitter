@@ -52,6 +52,14 @@
 	
 	class tweetException extends Exception {
 		
+		function __construct($string)
+		{
+			parent::__construct($string);
+		}
+		
+		public function __toString() {
+			return "exception '".__CLASS__ ."' with message '".$this->getMessage()."' in ".$this->getFile().":".$this->getLine()."\nStack trace:\n".$this->getTraceAsString();
+		}
 	}
 	
 	class tweetConnection {
@@ -185,7 +193,14 @@
 					
 					if ( isset($this->_responses[$key]) )
 					{
-					 	return new tweetResponseOauth( (object) $this->_responses[$key] );
+						$response = new tweetResponseOauth( (object) $this->_responses[$key] );
+						
+						if ( $response->__resp->code !== 200 )
+						{
+							throw new tweetException($response->__resp->code.' | Request Failed: '.$response->__resp->data->request.' - '.$response->__resp->data->error);
+						}
+						
+						return $response;
 					}
 				}
 				
@@ -264,7 +279,8 @@
 		private $_version 			= '1.0';
 		private $_apiUrl 			= 'http://api.twitter.com';
 		private $_callback = NULL;
-		
+		private $_errors = array();
+		private $_enable_debug = FALSE;
 		
 		// protected $requestTokenUrl	= 'http://twitter.com/oauth/request_token';
 		// protected $accessTokenUrl = 'http://twitter.com/oauth/access_token';
@@ -289,10 +305,30 @@
 			$this->_checkLogin();
 		}
 		
+		function __destruct()
+		{
+			if ( !$this->_enable_debug ) return;
+			
+			if ( !empty($this->_errors) )
+			{
+				foreach ( $this->_errors as $key => $e )
+				{
+					echo '<pre>'.$e.'</pre>';
+				}
+			}
+		}
+		
+		public function enable_debug($debug)
+		{
+			$debug = (bool) $debug;
+			$this->_enable_debug = $debug;
+		}
+		
 		public function call($method, $path, $args = NULL)
 		{
 			$response = $this->_httpRequest(strtoupper($method), $this->_apiUrl.'/'.$path.'.json', $args);
-			return $response->_result;
+			
+			return ( empty($response->_result) ) ? FALSE : $response->_result;
 		}
 		
 		public function loggedIn()
@@ -441,23 +477,27 @@
 			
 			$this->_connection = new tweetConnection();
 			
-			switch ( $method )
-			{
-				case 'GET':
-					return $this->_connection->get($url, $params);
-				break;
-				
-				case 'POST':
-					return $this->_connection->post($url, $params);
-				break;
-				
-				case 'PUT':
-					return NULL;
-				break;
-				
-				case 'DELETE':
-					return NULL;
-				break;
+			try {
+				switch ( $method )
+				{
+					case 'GET':
+						return $this->_connection->get($url, $params);
+					break;
+
+					case 'POST':
+						return $this->_connection->post($url, $params);
+					break;
+
+					case 'PUT':
+						return NULL;
+					break;
+
+					case 'DELETE':
+						return NULL;
+					break;
+				}
+			} catch (tweetException $e) {
+				$this->_errors[] = $e;
 			}
 		}
 		
