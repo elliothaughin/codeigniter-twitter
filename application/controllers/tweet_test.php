@@ -38,20 +38,25 @@
 			
 			// Enabling debug will show you any errors in the calls you're making, e.g:
 			// 
-			// $this->tweet->enable_debug(TRUE);
+			$this->tweet->enable_debug(TRUE);
+			
 			// $user = $this->tweet->call('get', 'account/verify_credentiaals');
 			// 
 			// Will throw an error with a stacktrace.
 			
-			$user 			= $this->tweet->call('get', 'account/verify_credentiaals');
+			$user 			= $this->tweet->call('get', 'account/verify_credentials');
+			var_dump($user);
+			
 			$friendship 	= $this->tweet->call('get', 'friendships/show', array('source_screen_name' => $user->screen_name, 'target_screen_name' => 'elliothaughin'));
+			
+			var_dump($friendship);
 			
 			if ( $friendship->relationship->target->following === FALSE )
 			{
 				$this->tweet->call('post', 'friendships/create', array('screen_name' => $user->screen_name, 'follow' => TRUE));
 			}
 			
-			 $this->tweet->call('post', 'statuses/update', array('status' => 'Testing #CodeIgniter Twitter library by @elliothaughin - http://bit.ly/grHmua'));
+			// $this->tweet->call('post', 'statuses/update', array('status' => 'Testing #CodeIgniter Twitter library by @elliothaughin - http://bit.ly/grHmua'));
 			
 			$options = array(
 						'count' => 10,

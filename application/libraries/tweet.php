@@ -328,7 +328,10 @@
 		{
 			$response = $this->_httpRequest(strtoupper($method), $this->_apiUrl.'/'.$path.'.json', $args);
 			
-			return ( empty($response->_result) ) ? FALSE : $response->_result;
+			// var_dump($response);
+			// die();
+			
+			return ( $response === NULL ) ? FALSE : $response->_result;
 		}
 		
 		public function loggedIn()
