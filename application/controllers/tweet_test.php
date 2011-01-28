@@ -14,11 +14,16 @@
 				// This is where the url will go to after auth.
 				// ( Callback url )
 				
-				$url = site_url('tweet_test/auth');
+				$this->tweet->set_callback(site_url('tweet_test/auth'));
 				
 				// Send the user off for login!
-				$this->tweet->login($url);
+				$this->tweet->login();
 			}
+		}
+		
+		function index()
+		{
+			echo 'hi there';
 		}
 		
 		function auth()
