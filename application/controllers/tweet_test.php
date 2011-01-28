@@ -36,14 +36,14 @@
 			$tokens = $this->tweet->get_tokens();
 			
 			$user 			= $this->tweet->call('get', 'account/verify_credentials');
-			$relationship 	= $this->tweet->call('get', 'friendships/show', array('source_screen_name' => $user->screen_name, 'target_screen_name' => 'elliothaughin'));
+			$friendship 	= $this->tweet->call('get', 'friendships/show', array('source_screen_name' => $user->screen_name, 'target_screen_name' => 'elliothaughin'));
 			
-			if ( $relationship->target->following === FALSE )
+			if ( $friendship->relationship->target->following === FALSE )
 			{
 				$this->tweet->call('post', 'friendships/create', array('screen_name' => $user->screen_name, 'follow' => TRUE));
 			}
 			
-			$this->tweet->call('post', 'statuses/update', array('status' => 'Testing #CodeIgniter Twitter library by @elliothaughin - http://bit.ly/grHmua'));
+			// $this->tweet->call('post', 'statuses/update', array('status' => 'Testing #CodeIgniter Twitter library by @elliothaughin - http://bit.ly/grHmua'));
 			
 			$options = array(
 						'count' => 10,
