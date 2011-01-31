@@ -278,12 +278,10 @@
 		private $_signatureMethod 	= 'HMAC-SHA1';
 		private $_version 			= '1.0';
 		private $_apiUrl 			= 'http://api.twitter.com';
+		private $_searchUrl			= 'http://search.twitter.com/';
 		private $_callback = NULL;
 		private $_errors = array();
 		private $_enable_debug = FALSE;
-		
-		// protected $requestTokenUrl	= 'http://twitter.com/oauth/request_token';
-		// protected $accessTokenUrl = 'http://twitter.com/oauth/access_token';
 		
 		function __construct()
 		{
@@ -330,6 +328,13 @@
 			
 			// var_dump($response);
 			// die();
+			
+			return ( $response === NULL ) ? FALSE : $response->_result;
+		}
+		
+		public function search($args = NULL)
+		{
+			$response = $this->_httpRequest('GET', $this->_searchUrl.'search.json', $args);
 			
 			return ( $response === NULL ) ? FALSE : $response->_result;
 		}
