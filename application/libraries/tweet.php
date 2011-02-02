@@ -48,6 +48,11 @@
 						
 			return $tokens;
 		}
+		
+		function set_tokens($tokens)
+		{
+			return $this->_oauth->setAccessTokens($tokens);
+		}
 	}
 	
 	class tweetException extends Exception {
@@ -460,6 +465,11 @@
 		{
 			$this->_setAccessKey($tokens['oauth_token']);
 			$this->_setAccessSecret($tokens['oauth_token_secret']);
+		}
+		
+		public function setAccessTokens($tokens)
+		{
+			return $this->_setAccessTokens($tokens);
 		}
 		
 		private function _getAuthorizationUrl()
