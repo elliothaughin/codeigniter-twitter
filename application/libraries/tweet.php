@@ -277,7 +277,7 @@
 		
 		private $_obj;
 		private $_tokens = array();
-		private $_authorizationUrl 	= 'http://api.twitter.com/oauth/authorize';
+		private $_authorizationUrl 	= 'http://api.twitter.com/oauth/authenticate';
 		private $_requestTokenUrl 	= 'http://api.twitter.com/oauth/request_token';
 		private $_accessTokenUrl 	= 'http://api.twitter.com/oauth/access_token';
 		private $_signatureMethod 	= 'HMAC-SHA1';
