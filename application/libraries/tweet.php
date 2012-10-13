@@ -303,8 +303,9 @@
 		private $_accessTokenUrl 		= 'http://api.twitter.com/oauth/access_token';
 		private $_signatureMethod 		= 'HMAC-SHA1';
 		private $_version 				= '1.0';
-		private $_apiUrl 				= 'http://api.twitter.com/1.1';
-		private $_searchUrl				= 'http://search.twitter.com/';
+		private $_apiVersion 			= '1.1';
+		private $_apiUrl 				= 'http://api.twitter.com';
+		private $_searchUrl				= 'http://search.twitter.com';
 		private $_uploadUrl     		= 'https://upload.twitter.com/1/';
 		private $_callback 				= NULL;
 		private $_errors 				= array();
@@ -352,7 +353,7 @@
 		
 		public function call($method, $path, $args = NULL)
 		{
-			$response = $this->_httpRequest(strtoupper($method), $this->_apiUrl.'/'.$path.'.json', $args);
+			$response = $this->_httpRequest(strtoupper($method), $this->_apiUrl.'/'.$this->_apiVersion.'/'.$path.'.json', $args);
 			
 			// var_dump($response);
 			// die();
@@ -369,7 +370,7 @@
 		
 		public function search($args = NULL)
 		{
-			$response = $this->_httpRequest('GET', $this->_searchUrl.'search.json', $args);
+			$response = $this->_httpRequest('GET', $this->_searchUrl.'/search.json', $args);
 			
 			return ( $response === NULL ) ? FALSE : $response->_result;
 		}
