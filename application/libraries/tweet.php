@@ -277,7 +277,10 @@
 		
 		private $_obj;
 		private $_tokens = array();
-		private $_authorizationUrl 	= 'http://api.twitter.com/oauth/authorize';
+
+		// I changed the url of $_authorizationUrl to 'authenticate' instead of 'authorize' as if a user has already authed an app
+		// To their account- this URL auto logs them instead of asking for permission again... much better for "sign in" type apps
+		private $_authorizationUrl 	= 'http://twitter.com/oauth/authenticate';
 		private $_requestTokenUrl 	= 'http://api.twitter.com/oauth/request_token';
 		private $_accessTokenUrl 	= 'http://api.twitter.com/oauth/access_token';
 		private $_signatureMethod 	= 'HMAC-SHA1';
