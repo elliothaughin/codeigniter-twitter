@@ -119,7 +119,11 @@
 			
 			foreach ( $params['request'] as $k => $v )
 			{
-				$post .= "{$k}={$v}&";
+				if($k=='status'){
+  				$post .= $k.'='.rawurlencode($v).'&';
+				} else {
+  				$post .= "{$k}={$v}&";
+				}
 			}
 			
 			$post = substr($post, 0, -1);
