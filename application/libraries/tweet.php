@@ -1,4 +1,4 @@
-<?php
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 	
 	class tweet {
 		
@@ -96,14 +96,15 @@
 		{
 			if ( count($params['request']) > 0 )
 			{
-				$url .= '?';
+				/*$url .= '?';
 			
 				foreach( $params['request'] as $k => $v )
 				{
 					$url .= "{$k}={$v}&";
 				}
 				
-				$url = substr($url, 0, -1);
+				$url = substr($url, 0, -1);*/
+				$url = http_build_query($params);
 			}
 			
 			$this->_initConnection($url);
@@ -112,21 +113,38 @@
 		    return $response;
 		}
 		
-		public function post($url, $params)
+		public function post($url, $params, $multipart = false)
 		{
 			// Todo
-			$post = '';
+			/*$post = '';
 			
 			foreach ( $params['request'] as $k => $v )
 			{
 				$post .= "{$k}={$v}&";
 			}
 			
-			$post = substr($post, 0, -1);
+			$post = substr($post, 0, -1);*/
+			
+			if(!$multipart){
+ 	 			/*foreach ( $params['request'] as $k => $v )
+ 				{
+ 	 				$post .= "{$k}={$v}&";
+				}
+ 				$post = substr($post, 0, -1);*/
+				$post = http_build_query($params);
+ 	 		} else {
+ 	 			$post = $params['request'];
+			}
 			
 			$this->_initConnection($url, $params);
 			curl_setopt($this->_ch, CURLOPT_POST, 1);
 			curl_setopt($this->_ch, CURLOPT_POSTFIELDS, $post);
+			
+			// Debugging
+ 	 		//$f = fopen('/Users/Lee/Desktop/request.txt', 'w');
+ 	 		curl_setopt($this->_ch, CURLOPT_VERBOSE, true);
+ 	 		//curl_setopt($this->_ch, CURLOPT_STDERR, $f);
+ 	 		curl_setopt($this->_ch, CURLOPT_SSL_VERIFYPEER, true);
 			
 			$response = $this->_addCurl($url, $params);
 
@@ -135,7 +153,8 @@
 		
 		private function _addOauthHeaders(&$ch, $url, $oauthHeaders)
 		{
-			$_h = array('Expect:');
+			//$_h = array('Expect:');
+			$_h = array('Expect:', "Connection: Keep-Alive", "Cache-Control: no-cache", "User-Agent: " . $_SERVER['HTTP_USER_AGENT']);
 			$urlParts = parse_url($url);
 			$oauth = 'Authorization: OAuth realm="' . $urlParts['path'] . '",';
 			
@@ -144,6 +163,7 @@
 				$oauth .= "{$name}=\"{$value}\",";
 			}
 			
+			// Additional headers
 			$_h[] = substr($oauth, 0, -1);
 			
 			curl_setopt($ch, CURLOPT_HTTPHEADER, $_h);
@@ -276,17 +296,21 @@
 	class tweetOauth extends tweetConnection {
 		
 		private $_obj;
-		private $_tokens = array();
-		private $_authorizationUrl 	= 'http://api.twitter.com/oauth/authorize';
-		private $_requestTokenUrl 	= 'http://api.twitter.com/oauth/request_token';
-		private $_accessTokenUrl 	= 'http://api.twitter.com/oauth/access_token';
-		private $_signatureMethod 	= 'HMAC-SHA1';
-		private $_version 			= '1.0';
-		private $_apiUrl 			= 'http://api.twitter.com';
-		private $_searchUrl			= 'http://search.twitter.com/';
-		private $_callback = NULL;
-		private $_errors = array();
-		private $_enable_debug = FALSE;
+		private $_tokens 				= array();
+		//private $_authorizationUrl 	= 'http://api.twitter.com/oauth/authorize';
+		private $_authorizationUrl   	= 'http://api.twitter.com/oauth/authenticate';
+		private $_requestTokenUrl 		= 'http://api.twitter.com/oauth/request_token';
+		private $_accessTokenUrl 		= 'http://api.twitter.com/oauth/access_token';
+		private $_signatureMethod 		= 'HMAC-SHA1';
+		private $_version 				= '1.0';
+		private $_apiVersion 			= '1.1';
+		private $_apiUrl 				= 'http://api.twitter.com';
+		private $_searchUrl				= 'http://search.twitter.com';
+		private $_uploadUrl     		= 'https://upload.twitter.com/1/';
+		private $_callback 				= NULL;
+		private $_errors 				= array();
+		private $_enable_debug 			= FALSE;
+		private $_multipart 			= FALSE;
 		
 		function __construct()
 		{
@@ -329,7 +353,7 @@
 		
 		public function call($method, $path, $args = NULL)
 		{
-			$response = $this->_httpRequest(strtoupper($method), $this->_apiUrl.'/'.$path.'.json', $args);
+			$response = $this->_httpRequest(strtoupper($method), $this->_apiUrl.'/'.$this->_apiVersion.'/'.$path.'.json', $args);
 			
 			// var_dump($response);
 			// die();
@@ -337,9 +361,16 @@
 			return ( $response === NULL ) ? FALSE : $response->_result;
 		}
 		
+		public function upload($args = NULL)
+		{
+ 	 		$this->_multipart = TRUE;
+			$response = $this->_httpRequest('POST', $this->_uploadUrl.'statuses/update_with_media.json', $args);
+ 	 		return ( $response === NULL ) ? FALSE : $response->_result;
+ 	 	}
+		
 		public function search($args = NULL)
 		{
-			$response = $this->_httpRequest('GET', $this->_searchUrl.'search.json', $args);
+			$response = $this->_httpRequest('GET', $this->_searchUrl.'/search.json', $args);
 			
 			return ( $response === NULL ) ? FALSE : $response->_result;
 		}
@@ -503,7 +534,8 @@
 					break;
 
 					case 'POST':
-						return $this->_connection->post($url, $params);
+						//return $this->_connection->post($url, $params);
+						return $this->_connection->post($url, $params, $this->_multipart);
 					break;
 
 					case 'PUT':
@@ -551,6 +583,12 @@
 			
 			array_walk($oauth, array($this, '_encode_rfc3986'));
 			
+			if($this->_multipart)
+			{
+				$request_params = $params;
+				$params = array();
+			}
+			
 			if ( is_array($params) )
 			{
 				array_walk($params, array($this, '_encode_rfc3986'));
@@ -561,7 +599,13 @@
 			ksort($encodedParams);
 			
 			$oauth['oauth_signature'] = $this->_encode_rfc3986($this->_generateSignature($method, $url, $encodedParams));
-			return array('request' => $params, 'oauth' => $oauth);
+			//return array('request' => $params, 'oauth' => $oauth);
+			
+			if($this->_multipart){
+				return array('request' => $request_params, 'oauth' => $oauth);
+			} else {
+				return array('request' => $params, 'oauth' => $oauth);
+			}
 		}
 	
 		private function _generateNonce()
@@ -583,6 +627,7 @@
 			
 			foreach ($params as $k => $v)
 			{
+				$k = $this->_encode_rfc3986($k);
 				$v = $this->_encode_rfc3986($v);
 				$concatenatedParams .= "{$k}={$v}&";
 			}
@@ -590,7 +635,14 @@
 			$concatenatedParams = $this->_encode_rfc3986(substr($concatenatedParams, 0, -1));
 
 			// normalize url
-			$normalizedUrl = $this->_encode_rfc3986($this->_normalizeUrl($url));
+			//$normalizedUrl = $this->_encode_rfc3986($this->_normalizeUrl($url));
+			// Using the normalized url when uploading generates a 401 issue, yet for other api calls there's not a problem...
+ 	 		if($this->_multipart){
+ 	 			$normalizedUrl = $this->_encode_rfc3986($url);
+			} else {
+				$normalizedUrl = $this->_encode_rfc3986($this->_normalizeUrl($url));
+			}
+			
 			$method = $this->_encode_rfc3986($method); // don't need this but why not?
 
 			$signatureBaseString = "{$method}&{$normalizedUrl}&{$concatenatedParams}";
