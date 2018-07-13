@@ -485,7 +485,7 @@
 		
 		private function _getAccessToken()
 		{
-			return $this->_httpRequest('GET', $this->_accessTokenUrl);
+			return $this->_httpRequest('GET', $this->_accessTokenUrl, array('oauth_verifier'=>$_GET['oauth_verifier']));
 		}
 		
 		protected function _httpRequest($method = null, $url = null, $params = null)
