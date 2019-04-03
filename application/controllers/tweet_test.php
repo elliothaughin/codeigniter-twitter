@@ -77,4 +77,19 @@
 			
 			var_dump($timeline);
 		}
+		
+		// This is assuming that this is called from the form on the view and that
+		// the user has already been validated
+		function upload_img(){
+			// Referenced from https://github.com/themattharris/tmhOAuth
+			$image  = "@{$_FILES['image']['tmp_name']};type={$_FILES['image']['type']};filename={$_FILES['image']['name']}";
+			$data   = array(
+				'media[]'  => $image,
+				'status'   => $this->input->post('status')
+			);
+			
+			$result = $this->tweet->upload($data);
+			
+			var_dump($result);
+		}
 	}
